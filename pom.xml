@@ -25,6 +25,21 @@
         <suiteFile>testng.xml</suiteFile>
     </properties>
 
+    <!--
+        Force io.cucumber:messages to 24.1.0 so that both cucumber-core 7.18.0
+        (which needs 24.1.0) and allure-cucumber7-jvm 2.27.0 (whose transitive
+        gherkin dep wants [19.1.4,23.0.0)) use the same version without a conflict.
+    -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.cucumber</groupId>
+                <artifactId>messages</artifactId>
+                <version>24.1.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <dependencies>
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
