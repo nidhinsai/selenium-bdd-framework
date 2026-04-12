@@ -47,13 +47,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Set up Chrome
-        uses: browser-actions/setup-chrome@v1
+      # ubuntu-latest already ships Chrome; WebDriverManager resolves ChromeDriver automatically.
+      # No need for a separate setup-chrome step.
 
       - name: Run tests
-        # maven.test.failure.ignore keeps Maven going past surefire into the
-        # verify phase so that maven-cucumber-reporting and allure:report can run.
-        # The real exit code is evaluated by checking if allure-results exist.
+        # maven.test.failure.ignore lets Maven reach the verify phase (reporting plugins)
+        # even when Selenium tests fail against the demo URL.
         run: |
           mvn clean verify \
             -Dbrowser=${{ github.event.inputs.browser || matrix.browser }} \
@@ -65,6 +64,7 @@ jobs:
 
       - name: Generate Allure report
         if: always()
+        continue-on-error: true   # no-op when allure-results is empty
         run: mvn allure:report -q
 
       - name: Upload Allure results
@@ -73,6 +73,7 @@ jobs:
         with:
           name: allure-results-${{ matrix.browser }}
           path: target/allure-results/
+          if-no-files-found: warn
 
       - name: Upload Allure report
         if: always()
@@ -80,6 +81,7 @@ jobs:
         with:
           name: allure-report-${{ matrix.browser }}
           path: target/site/allure-maven-plugin/
+          if-no-files-found: warn
 
       - name: Upload Cucumber report
         if: always()
@@ -87,9 +89,10 @@ jobs:
         with:
           name: cucumber-reports-${{ matrix.browser }}
           path: target/cucumber-reports/
+          if-no-files-found: warn
 
       - name: Upload screenshots & evidence
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failure-evidence-${{ matrix.browser }}
@@ -97,12 +100,4 @@ jobs:
             test-output/screenshots/
             test-output/evidence/
             logs/
-
-      - name: Publish Allure to GitHub Pages
-        if: github.ref == 'refs/heads/main' && always()
-        continue-on-error: true   # repo may not have Pages enabled
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: target/site/allure-maven-plugin
-          destination_dir: allure-report
+          if-no-files-found: warn
