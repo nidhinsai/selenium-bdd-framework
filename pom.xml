@@ -154,6 +154,8 @@
                             <jsonFiles>
                                 <param>**/cucumber.json</param>
                             </jsonFiles>
+                            <!-- Do not fail the build when tests fail — CI handles exit codes via surefire -->
+                            <checkBuildResult>false</checkBuildResult>
                         </configuration>
                     </execution>
                 </executions>
