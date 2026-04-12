@@ -68,38 +68,3 @@ public class WaitUtil {
         return wait.until(ExpectedConditions.titleContains(fragment));
     }
 }
-
-    public WebElement visible(By locator) {
-        LOG.debug("Waiting for visible: {}", locator);
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
-    }
-
-    public WebElement clickable(By locator) {
-        LOG.debug("Waiting for clickable: {}", locator);
-        return wait.until(ExpectedConditions.elementToBeClickable(locator));
-    }
-
-    public boolean invisible(By locator) {
-        LOG.debug("Waiting for invisible: {}", locator);
-        return wait.until(ExpectedConditions.invisibilityOfElementLocated(locator));
-    }
-
-    public WebElement present(By locator) {
-        LOG.debug("Waiting for DOM presence: {}", locator);
-        return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
-    }
-
-    /** Fluent wait — polls more frequently, useful for animated/async elements. */
-    public WebElement fluentVisible(By locator) {
-        LOG.debug("Fluent-wait for visible: {}", locator);
-        return fluentWait.until(ExpectedConditions.visibilityOfElementLocated(locator)::apply);
-    }
-
-    public boolean urlContains(String fragment) {
-        return wait.until(ExpectedConditions.urlContains(fragment));
-    }
-
-    public boolean titleContains(String fragment) {
-        return wait.until(ExpectedConditions.titleContains(fragment));
-    }
-}
