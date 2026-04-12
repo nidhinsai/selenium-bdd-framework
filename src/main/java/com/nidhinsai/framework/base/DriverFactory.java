@@ -48,9 +48,17 @@ public final class DriverFactory {
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
                 if (headless) {
-                    chromeOptions.addArguments("--headless=new");
+                    chromeOptions.addArguments(
+                            "--headless=new",
+                            "--window-size=1920,1080",  // maximize equivalent for headless
+                            "--disable-gpu"
+                    );
                 }
-                chromeOptions.addArguments("--no-sandbox", "--disable-dev-shm-usage");
+                chromeOptions.addArguments(
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--remote-allow-origins=*"
+                );
                 driver = new ChromeDriver(chromeOptions);
         }
 
@@ -58,7 +66,10 @@ public final class DriverFactory {
                 Integer.parseInt(ConfigReader.get("app.timeout.implicit", "5"))));
         driver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(
                 Integer.parseInt(ConfigReader.get("app.timeout.pageLoad", "30"))));
-        driver.manage().window().maximize();
+        // maximize() throws in some headless Chrome versions; use window-size arg instead
+        if (!headless) {
+            driver.manage().window().maximize();
+        }
         DRIVER.set(driver);
         LOG.info("WebDriver ready — session started on thread {}", Thread.currentThread().getName());
     }
