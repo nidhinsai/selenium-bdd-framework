@@ -1,0 +1,105 @@
+name: Selenium BDD CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Nightly regression run at 02:00 UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      browser:
+        description: 'Browser'
+        required: true
+        default: 'chrome'
+        type: choice
+        options: [ chrome, firefox ]
+      env:
+        description: 'Environment'
+        required: true
+        default: 'qa'
+        type: choice
+        options: [ qa, staging ]
+      tags:
+        description: 'Cucumber tag filter'
+        required: false
+        default: '@smoke and not @skip'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [ chrome ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Run tests
+        run: |
+          mvn clean verify \
+            -Dbrowser=${{ github.event.inputs.browser || matrix.browser }} \
+            -Dheadless=true \
+            -Denv=${{ github.event.inputs.env || 'qa' }} \
+            -Dcucumber.filter.tags="${{ github.event.inputs.tags || '@smoke and not @skip' }}" \
+            -DsuiteFile=testng.xml
+        env:
+          DISPLAY: ':99'
+
+      - name: Generate Allure report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.browser }}
+          path: target/allure-results/
+
+      - name: Upload Allure report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report-${{ matrix.browser }}
+          path: target/site/allure-maven-plugin/
+
+      - name: Upload Cucumber report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-reports-${{ matrix.browser }}
+          path: target/cucumber-reports/
+
+      - name: Upload screenshots & evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-evidence-${{ matrix.browser }}
+          path: |
+            test-output/screenshots/
+            test-output/evidence/
+            logs/
+
+      - name: Publish Allure to GitHub Pages
+        if: github.ref == 'refs/heads/main' && always()
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: target/site/allure-maven-plugin
+          destination_dir: allure-report
