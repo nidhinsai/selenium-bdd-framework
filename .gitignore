@@ -1,6 +1,22 @@
+# Build output
 target/
+*.class
+*.jar
+
+# IDE
 .idea/
 *.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# macOS
 .DS_Store
+
+# Test artifacts (generated; must not be committed)
 screenshots/
 logs/
+test-output/
+allure-results/
+allure-report/
