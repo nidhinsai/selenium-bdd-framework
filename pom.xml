@@ -18,7 +18,7 @@
         <wdm.version>5.8.0</wdm.version>
         <log4j.version>2.23.1</log4j.version>
         <allure.version>2.27.0</allure.version>
-        <aspectj.version>1.9.22</aspectj.version>
+        <aspectj.version>1.9.25.1</aspectj.version>
         <jacoco.version>0.8.12</jacoco.version>
         <!-- Default to headless; override locally with -Dheadless=false -->
         <browser>chrome</browser>
