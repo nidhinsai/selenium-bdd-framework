@@ -1,0 +1,7 @@
+# All files — nidhinsai is the default reviewer
+* @nidhinsai
+
+# Framework core changes require owner review
+src/main/ @nidhinsai
+.github/  @nidhinsai
+pom.xml   @nidhinsai
