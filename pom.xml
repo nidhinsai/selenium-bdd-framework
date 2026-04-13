@@ -16,7 +16,7 @@
         <cucumber.version>7.18.0</cucumber.version>
         <testng.version>7.10.2</testng.version>
         <wdm.version>5.8.0</wdm.version>
-        <log4j.version>2.23.1</log4j.version>
+        <log4j.version>2.25.4</log4j.version>
         <allure.version>2.27.0</allure.version>
         <aspectj.version>1.9.22</aspectj.version>
         <jacoco.version>0.8.12</jacoco.version>
