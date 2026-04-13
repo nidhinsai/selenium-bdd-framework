@@ -34,7 +34,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        browser: [ chrome ]
+        browser: [ chrome, firefox ]   # Both browsers tested on every push/PR
 
     steps:
       - name: Checkout
@@ -47,12 +47,15 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # ubuntu-latest already ships Chrome; WebDriverManager resolves ChromeDriver automatically.
-      # No need for a separate setup-chrome step.
+      - name: Install Firefox
+        if: matrix.browser == 'firefox'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y firefox
 
       - name: Run tests
         # maven.test.failure.ignore lets Maven reach the verify phase (reporting plugins)
-        # even when Selenium tests fail against the demo URL.
+        # even when tests fail; we detect failures explicitly in the next step.
         run: |
           mvn clean verify \
             -Dbrowser=${{ github.event.inputs.browser || matrix.browser }} \
@@ -62,9 +65,24 @@ jobs:
             -DsuiteFile=testng.xml \
             -Dmaven.test.failure.ignore=true
 
+      - name: Check for test failures
+        # Fail the CI job if any Surefire report contains failures or errors.
+        # This gives us reporting artifacts AND a failing build when tests break.
+        run: |
+          REPORTS=$(find target/surefire-reports -name '*.xml' 2>/dev/null || true)
+          if [ -z "$REPORTS" ]; then
+            echo "No Surefire reports found — build may have failed before tests ran."
+            exit 1
+          fi
+          if grep -l 'failures="[1-9]\|errors="[1-9]' $REPORTS 2>/dev/null | grep -q .; then
+            echo "::error::One or more tests failed. Check the Allure / Cucumber reports in artifacts."
+            exit 1
+          fi
+          echo "All tests passed."
+
       - name: Generate Allure report
         if: always()
-        continue-on-error: true   # no-op when allure-results is empty
+        continue-on-error: true
         run: mvn allure:report -q
 
       - name: Upload Allure results
